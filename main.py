@@ -4,6 +4,8 @@ class Dot:
         self._y = y
 
     def __eq__(self, other):
+        if not isinstance(other, Dot):
+            return False
         return self._x == other._x and self._y == other._y
 
     def __str__(self):
@@ -28,28 +30,36 @@ class Ship:
 
 
 class Board:
-    def __init__(self):
-        self.visual = [['О']*6 for _ in range(6)]
-
+    def __init__(self, hid: bool):
+        self.visual = [['O']*6 for _ in range(6)]
+        self.ships = set()
+        self.count_of_ships = {'1': 0, '2': 0, '3': 0}
+        self.hid = True
+        self.contour = self.ships
     state = [Dot(x, y) for y in range(1, 7) for x in range(1, 7)]
-    hid = True
-    count_alive = 0
+    count_ships = 0
 
-    def add_ship(self, ship):
+    def add_ship(self, ship: Ship):
         flag = True
         for dot in ship.dots:
             if dot not in Board.state:
                 flag = False
-        if flag:
-            for dot in ship.dots:
-                self.visual[dot._y-1][dot._x-1] = '■'
-
+            if flag:
+                for dot in ship.dots:
+                    self.visual[dot._y-1][dot._x-1] = '■'
+                    self.ships.add(dot)
+                    for x in range(dot._x-1, dot._x+2):
+                        for y in range(dot._y-1, dot._y+2):
+                            self.contour.add(Dot(x, y))
+            else:
+                raise ValueError
 
 class Player:
     pass
-ship1 = Ship(2, Dot(4, 3), 1)
-pl1_board = Board()
-pl1_board.add_ship(ship1)
+
+ship1 = Ship(3, Dot(4, 6), 0)
+pl1_board = Board(True)
+# pl1_board.add_ship(ship1)
 print(*pl1_board.visual, sep='\n')
 
 
