@@ -1,3 +1,5 @@
+from random import randint
+
 class Dot:
     def __init__(self, x: int, y: int):
         self._x = x
@@ -89,7 +91,35 @@ class Board:
             self.visual[dot._y - 1][dot._x - 1] = 'X'
 
 class Player:
-    pass
+    def __init__(self, selfboard: Board, enemyboard: Board):
+        self.selfboard = selfboard
+        self.enemyboard = enemyboard
+
+    def ask(self):
+        pass
+
+    def move(self, flag=None):
+        flag = True
+        dot = self.ask()
+        try:
+            self.enemyboard.shot(dot)
+        except ValueError:
+            self.move()
+        else:
+            if self.enemyboard.visual[dot._y - 1][dot._x - 1] != 'X':
+                flag = False
+        return flag
+
+class AI(Player):
+    # def ask(self):
+    #     shots =
+
+
+class User(Player):
+    def ask(self):
+        x, y = input('Введите координаты через пробел: ')
+        return Dot(x, y)
+
 
 ship1 = Ship(3, Dot(6, 6), 0)
 ship2 = Ship(2, Dot(2, 1), 1)
