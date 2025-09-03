@@ -177,6 +177,15 @@ class Game:
 
         return brd
 
+    def greet(self):
+        pass
+
+    def loop(self):
+        usrbrd = self.random_board()
+        cmpbrd = self.random_board()
+        usr = User(usrbrd, cmpbrd)
+        cmp = AI(cmpbrd, usrbrd)
+
 
 
 
