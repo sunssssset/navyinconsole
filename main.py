@@ -42,12 +42,11 @@ class Ship:
 class Board:
     def __init__(self, hid: bool):
         self.visual = [['O']*6 for _ in range(6)] # это буква, а не ноль
+        self.hidden_visual = [['O']*6 for _ in range(6)]
         self.ships = set()
         self.count_of_ships = {'1': 0, '2': 0, '3': 0}
-        self.hid = True
-        # self.contour = self.ships мб без контура
+        self.hid = hid
     state = [Dot(x, y) for y in range(1, 7) for x in range(1, 7)]
-    count_ships = 0
 
     @property
     def get_shipsdots(self):
@@ -82,13 +81,29 @@ class Board:
         else:
             raise ValueError
 
+    def display(self):
+        if not self.hid:
+            print(' ' * 3, '1', '  2   3   4   5   6')
+            for x in range(1, len(self.visual)+1):
+                print(f'{x}', *self.visual[x-1], sep=' | ', end=' |')
+                print()
+        else:
+            print(' ' * 3, '1', '  2   3   4   5   6')
+            for x in range(1, len(self.hidden_visual) + 1):
+                print(f'{x}', *self.hidden_visual[x - 1], sep=' | ', end=' |')
+                print()
+
+
+
     def shot(self, dot: Dot):
         if dot not in self.state or self.visual[dot._y - 1][dot._x - 1] == 'T' or self.visual[dot._y - 1][dot._x - 1] == 'X':
             raise ValueError
         elif self.visual[dot._y - 1][dot._x - 1] == 'O':
             self.visual[dot._y - 1][dot._x - 1] = 'T'
+            self.hidden_visual[dot._y - 1][dot._x - 1] = 'T'
         elif self.visual[dot._y - 1][dot._x - 1] == '■':
             self.visual[dot._y - 1][dot._x - 1] = 'X'
+            self.hidden_visual[dot._y - 1][dot._x - 1] = 'X'
 
 class Player:
     def __init__(self, selfboard: Board, enemyboard: Board):
@@ -111,27 +126,72 @@ class Player:
         return flag
 
 class AI(Player):
-    # def ask(self):
-    #     shots =
-
+    def ask(self):
+        x, y = randint(1, 6), randint(1, 6)
+        return Dot(x, y)
 
 class User(Player):
     def ask(self):
-        x, y = input('Введите координаты через пробел: ')
+        x, y = input('Введите координаты через пробел: ').split()
         return Dot(x, y)
+
+class Game:
+    def __init__(self, user: User, userboard: Board, comp: AI, compboard: Board):
+        self.user = user
+        self.userboard = userboard
+        self.comp = comp
+        self.compboard = compboard
+
+    def random_board(self):
+        brd = Board(False)
+
+        while brd.count_of_ships['3'] < 1:
+            count = 0
+            while count < 100:
+                ship = Ship(3, nose=Dot(randint(1, 6), randint(1, 6)), drctn=randint(0, 1))
+                try:
+                    brd.add_ship(ship)
+                except ValueError:
+                    count += 1
+            return self.random_board() # если посл. влож. цикл завершился перепонением счётчика, значит нужна новая доска
+
+        while brd.count_of_ships['2'] < 2:
+            count = 0
+            while count < 10_000:
+                ship = Ship(2, nose=Dot(randint(1, 6), randint(1, 6)), drctn=randint(0, 1))
+                try:
+                    brd.add_ship(ship)
+                except ValueError:
+                    count += 1
+            return self.random_board()
+
+        while brd.count_of_ships['1'] < 4:
+            count = 0
+            while count < 20_000:
+                ship = Ship(2, nose=Dot(randint(1, 6), randint(1, 6)), drctn=randint(0, 1))
+                try:
+                    brd.add_ship(ship)
+                except ValueError:
+                    count += 1
+            return self.random_board()
+
+        return brd
+
+
+
 
 
 ship1 = Ship(3, Dot(6, 6), 0)
 ship2 = Ship(2, Dot(2, 1), 1)
-pl1_board = Board(True)
+pl1_board = Board(False)
 pl1_board.add_ship(ship1)
 pl1_board.add_ship(ship2)
-print(*pl1_board.visual, sep='\n')
+pl1_board.display()
 print()
 pl1_board.shot(Dot(1, 1))
 pl1_board.shot(Dot(2, 1))
 pl1_board.shot(Dot(3, 1))
-print(*pl1_board.visual, sep='\n')
+pl1_board.display()
 
 
 
