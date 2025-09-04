@@ -53,21 +53,8 @@ class Board:
         return [str(i) for i in self.ships]
 
     def add_ship(self, ship: Ship):
+
         flag = True
-
-        if ship._length == 3 and self.count_of_ships['3'] == 1:
-            raise ValueError
-        elif ship._length == 3:
-            self.count_of_ships['3'] += 1
-        elif ship._length == 2 and self.count_of_ships['2'] == 2:
-            raise ValueError
-        elif ship._length == 2:
-            self.count_of_ships['2'] += 1
-        elif ship._length == 1 and self.count_of_ships['1'] == 4:
-            raise ValueError
-        elif ship._length == 1:
-            self.count_of_ships['1'] += 1
-
         for dot in ship.dots:
             if (dot not in self.state) or (dot in self.ships):
                 flag = False
@@ -80,6 +67,14 @@ class Board:
                         self.ships.add(Dot(x, y))
         else:
             raise ValueError
+
+
+        if ship._length == 3:
+            self.count_of_ships['3'] += 1
+        elif ship._length == 2:
+            self.count_of_ships['2'] += 1
+        elif ship._length == 1:
+            self.count_of_ships['1'] += 1
 
     def display(self):
         if not self.hid:
@@ -133,47 +128,44 @@ class AI(Player):
 class User(Player):
     def ask(self):
         x, y = input('Введите координаты через пробел: ').split()
-        return Dot(x, y)
+        return Dot(int(x), int(y))
 
 class Game:
-    def __init__(self, user: User, userboard: Board, comp: AI, compboard: Board):
-        self.user = user
-        self.userboard = userboard
-        self.comp = comp
-        self.compboard = compboard
+    def __init__(self):
+        userboard = self.random_board()
+        compboard = self.random_board()
+        self.user = User(userboard, compboard)
+        self.comp = AI(compboard, userboard)
+        self.comp.selfboard.hid = True
 
     def random_board(self):
         brd = Board(False)
+        count = 0
+        while brd.count_of_ships['3'] < 1 and count < 200:
+            ship = Ship(3, nose=Dot(randint(1, 6), randint(1, 6)), drctn=randint(0, 1))
+            try:
+                brd.add_ship(ship)
+            except ValueError:
+                count += 1
+        if count == 200: self.random_board() # если посл. влож. цикл завершился перепонением счётчика, значит нужна новая доска
 
-        while brd.count_of_ships['3'] < 1:
-            count = 0
-            while count < 100:
-                ship = Ship(3, nose=Dot(randint(1, 6), randint(1, 6)), drctn=randint(0, 1))
-                try:
-                    brd.add_ship(ship)
-                except ValueError:
-                    count += 1
-            return self.random_board() # если посл. влож. цикл завершился перепонением счётчика, значит нужна новая доска
+        count = 0
+        while brd.count_of_ships['2'] < 2 and count < 10_000:
+            ship = Ship(2, nose=Dot(randint(1, 6), randint(1, 6)), drctn=randint(0, 1))
+            try:
+                brd.add_ship(ship)
+            except ValueError:
+                count += 1
+        if count == 10_000: self.random_board()
 
-        while brd.count_of_ships['2'] < 2:
-            count = 0
-            while count < 10_000:
-                ship = Ship(2, nose=Dot(randint(1, 6), randint(1, 6)), drctn=randint(0, 1))
-                try:
-                    brd.add_ship(ship)
-                except ValueError:
-                    count += 1
-            return self.random_board()
-
-        while brd.count_of_ships['1'] < 4:
-            count = 0
-            while count < 20_000:
-                ship = Ship(2, nose=Dot(randint(1, 6), randint(1, 6)), drctn=randint(0, 1))
-                try:
-                    brd.add_ship(ship)
-                except ValueError:
-                    count += 1
-            return self.random_board()
+        count = 0
+        while brd.count_of_ships['1'] < 4 and count < 10_000:
+            ship = Ship(1, nose=Dot(randint(1, 6), randint(1, 6)), drctn=randint(0, 1))
+            try:
+                brd.add_ship(ship)
+            except ValueError:
+                count += 1
+        if count == 20_000: self.random_board()
 
         return brd
 
@@ -181,26 +173,45 @@ class Game:
         pass
 
     def loop(self):
-        usrbrd = self.random_board()
-        cmpbrd = self.random_board()
-        usr = User(usrbrd, cmpbrd)
-        cmp = AI(cmpbrd, usrbrd)
+        while any(['■' in i for i in self.user.selfboard.visual]) or any(['■' in i for i in self.comp.selfboard.visual]):
+            self.user.selfboard.display()
+            self.comp.selfboard.display()
+            self.user.move()
+            self.comp.move()
+        if not any(['■' in i for i in self.user.selfboard.visual]):
+            print('Вы проиграли')
+        else:
+            print('Вы победили')
 
 
 
+    def start(self):
+        self.loop()
+
+# brd = Board(False)
+# count = 0
+# while (count < 100) and (brd.count_of_ships['3'] < 1):
+#     ship = Ship(3, nose=Dot(randint(1, 6), randint(1, 6)), drctn=randint(0, 1))
+#     print([str(i) for i in ship.dots])
+#     print(brd.count_of_ships['3'])
+#     brd.display()
+#     try:
+#         brd.add_ship(ship)
+#     except ValueError:
+#         count += 1
+#         print(count)
+#         print(brd.count_of_ships['3'])
+#     else:
+#         pass
+# brd.display()
+# count = 0
 
 
-ship1 = Ship(3, Dot(6, 6), 0)
-ship2 = Ship(2, Dot(2, 1), 1)
-pl1_board = Board(False)
-pl1_board.add_ship(ship1)
-pl1_board.add_ship(ship2)
-pl1_board.display()
-print()
-pl1_board.shot(Dot(1, 1))
-pl1_board.shot(Dot(2, 1))
-pl1_board.shot(Dot(3, 1))
-pl1_board.display()
+g = Game()
+g.start()
+
+
+
 
 
 
