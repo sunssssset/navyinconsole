@@ -127,8 +127,12 @@ class AI(Player):
 
 class User(Player):
     def ask(self):
-        x, y = input('Введите координаты через пробел: ').split()
-        return Dot(int(x), int(y))
+        try:
+            x, y = input('Введите координаты: ').split()
+        except ValueError:
+            print('Вводите координаты по шаблону: x[пробел]y')
+        else:
+            return Dot(int(x), int(y))
 
 class Game:
     def __init__(self):
@@ -147,7 +151,8 @@ class Game:
                 brd.add_ship(ship)
             except ValueError:
                 count += 1
-        if count == 200: self.random_board() # если посл. влож. цикл завершился перепонением счётчика, значит нужна новая доска
+        if count == 200:
+            self.random_board()
 
         count = 0
         while brd.count_of_ships['2'] < 2 and count < 10_000:
@@ -156,7 +161,8 @@ class Game:
                 brd.add_ship(ship)
             except ValueError:
                 count += 1
-        if count == 10_000: self.random_board()
+        if count == 10_000:
+            self.random_board()
 
         count = 0
         while brd.count_of_ships['1'] < 4 and count < 10_000:
@@ -165,47 +171,29 @@ class Game:
                 brd.add_ship(ship)
             except ValueError:
                 count += 1
-        if count == 20_000: self.random_board()
+        if count == 20_000:
+            self.random_board()
 
         return brd
 
     def greet(self):
-        pass
+        print('|-----------------------------------------------------Морской бой-----------------------------------------------------|')
 
     def loop(self):
-        while any(['■' in i for i in self.user.selfboard.visual]) or any(['■' in i for i in self.comp.selfboard.visual]):
+        while any(['■' in i for i in self.user.selfboard.visual]) and any(['■' in i for i in self.comp.selfboard.visual]):
             self.user.selfboard.display()
+            print()
             self.comp.selfboard.display()
             self.user.move()
             self.comp.move()
         if not any(['■' in i for i in self.user.selfboard.visual]):
             print('Вы проиграли')
-        else:
+        elif not any(['■' in i for i in self.comp.selfboard.visual]):
             print('Вы победили')
 
-
-
     def start(self):
+        self.greet()
         self.loop()
-
-# brd = Board(False)
-# count = 0
-# while (count < 100) and (brd.count_of_ships['3'] < 1):
-#     ship = Ship(3, nose=Dot(randint(1, 6), randint(1, 6)), drctn=randint(0, 1))
-#     print([str(i) for i in ship.dots])
-#     print(brd.count_of_ships['3'])
-#     brd.display()
-#     try:
-#         brd.add_ship(ship)
-#     except ValueError:
-#         count += 1
-#         print(count)
-#         print(brd.count_of_ships['3'])
-#     else:
-#         pass
-# brd.display()
-# count = 0
-
 
 g = Game()
 g.start()
