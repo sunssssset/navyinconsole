@@ -43,20 +43,22 @@ class Board:
     def __init__(self, hid: bool):
         self.visual = [['O']*6 for _ in range(6)] # это буква, а не ноль
         self.hidden_visual = [['O']*6 for _ in range(6)]
-        self.ships = set()
+        self.ships_contour = set()
         self.count_of_ships = {'1': 0, '2': 0, '3': 0}
         self.hid = hid
+        self.ships = list()
+
     state = [Dot(x, y) for y in range(1, 7) for x in range(1, 7)]
 
     @property
     def get_shipsdots(self):
-        return [str(i) for i in self.ships]
+        return [str(i) for i in self.ships_contour]
 
     def add_ship(self, ship: Ship):
 
         flag = True
         for dot in ship.dots:
-            if (dot not in self.state) or (dot in self.ships):
+            if (dot not in self.state) or (dot in self.ships_contour):
                 flag = False
         if flag:
             for dot in ship.dots:
@@ -64,7 +66,8 @@ class Board:
                 # self.ships.add(dot) мб без контура
                 for x in range(dot._x - 1, dot._x + 2):
                     for y in range(dot._y - 1, dot._y + 2):
-                        self.ships.add(Dot(x, y))
+                        self.ships_contour.add(Dot(x, y))
+            self.ships.append(ship.dots)
         else:
             raise ValueError
 
@@ -99,6 +102,9 @@ class Board:
         elif self.visual[dot._y - 1][dot._x - 1] == '■':
             self.visual[dot._y - 1][dot._x - 1] = 'X'
             self.hidden_visual[dot._y - 1][dot._x - 1] = 'X'
+            for shp in self.ships:
+                if dot in shp:
+                    shp.pop(shp.index(dot))
 
 class Player:
     def __init__(self, selfboard: Board, enemyboard: Board):
@@ -186,6 +192,12 @@ class Game:
             self.comp.selfboard.display()
             self.user.move()
             self.comp.move()
+            count = 0
+            for shp in self.comp.selfboard.ships:
+                if self.comp.selfboard.ships.count([]) == 1:
+                    self.comp.selfboard.ships.remove([])
+                    print('Вы уничтожили корабль!')
+
         if not any(['■' in i for i in self.user.selfboard.visual]):
             print('Вы проиграли')
         elif not any(['■' in i for i in self.comp.selfboard.visual]):
